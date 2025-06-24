@@ -1,0 +1,31 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+
+df = sns.load_dataset('titanic')
+
+summary_stats = df.describe()
+print("Summary Statistics:\n", summary_stats)
+
+numeric_features = df.select_dtypes(include=['number']).columns
+
+for feature in numeric_features:
+    plt.figure(figsize=(8, 4))
+    sns.histplot(df[feature], kde=True)
+    plt.title(f'Histogram of {feature}')
+    plt.show()
+
+    plt.figure(figsize=(6, 4))
+    sns.boxplot(x=df[feature])
+    plt.title(f'Boxplot of {feature}')
+    plt.show()
+
+sns.pairplot(df[numeric_features])
+plt.show()
+
+corr_matrix = df[numeric_features].corr()
+plt.figure(figsize=(10, 6))
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm')
+plt.title('Correlation Matrix')
+plt.show()
