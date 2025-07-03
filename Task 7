@@ -1,0 +1,44 @@
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+import numpy as np
+
+data = load_breast_cancer()
+X = data.data
+y = data.target
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+
+X_train, X_test, y_train, y_test = train_test_split(X_pca, y, test_size=0.2, random_state=42)
+
+clf_linear = SVC(kernel='linear', C=1)
+clf_linear.fit(X_train, y_train)
+
+clf_rbf = SVC(kernel='rbf', C=1, gamma='scale')
+clf_rbf.fit(X_train, y_train)
+
+h = .02
+x_min, x_max = X_pca[:, 0].min() - 1, X_pca[:, 0].max() + 1
+y_min, y_max = X_pca[:, 1].min() - 1, X_pca[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+
+for clf, title in zip([clf_linear, clf_rbf], ['Linear Kernel', 'RBF Kernel']):
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, alpha=0.8)
+    plt.scatter(X_pca[:, 0], X_pca[:, 1], c=y, edgecolors='k')
+    plt.title(title)
+    plt.show()
+
+scores_linear = cross_val_score(clf_linear, X_pca, y, cv=5)
+scores_rbf = cross_val_score(clf_rbf, X_pca, y, cv=5)
+
+print("Linear Kernel Accuracy:", scores_linear.mean())
+print("RBF Kernel Accuracy:", scores_rbf.mean())
